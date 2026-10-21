@@ -1,0 +1,52 @@
+repos:
+  - repo: local
+    hooks:
+      - id: repository-sanity
+        name: repository sanity checks
+        entry: uv run --locked python scripts/check_repository.py
+        language: system
+        pass_filenames: false
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --locked ruff check .
+        language: system
+        pass_filenames: false
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --locked ruff format --check .
+        language: system
+        pass_filenames: false
+      - id: mypy
+        name: mypy
+        entry: uv run --locked mypy
+        language: system
+        pass_filenames: false
+      - id: check-yaml
+        name: check YAML
+        entry: uv run --locked python -m pre_commit_hooks.check_yaml
+        language: system
+        types: [yaml]
+      - id: trailing-whitespace
+        name: trim trailing whitespace
+        entry: uv run --locked python -m pre_commit_hooks.trailing_whitespace_fixer
+        language: system
+        types: [text]
+      - id: end-of-file-fixer
+        name: fix end of files
+        entry: uv run --locked python -m pre_commit_hooks.end_of_file_fixer
+        language: system
+        types: [text]
+      - id: mixed-line-ending
+        name: check line endings
+        entry: uv run --locked python -m pre_commit_hooks.mixed_line_ending --fix=no
+        language: system
+        types: [text]
+      - id: check-merge-conflict
+        name: check merge conflicts
+        entry: uv run --locked python -m pre_commit_hooks.check_merge_conflict
+        language: system
+        types: [text]
+      - id: check-added-large-files
+        name: check large files
+        entry: uv run --locked python -m pre_commit_hooks.check_added_large_files --enforce-all
+        language: system
