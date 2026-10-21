@@ -14,6 +14,9 @@ dependencies = [
     "typer>=0.15.0",
 ]
 
+[project.scripts]
+rg = "research_graph.cli:app"
+
 [dependency-groups]
 dev = [
     "mypy>=1.13.0",
