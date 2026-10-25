@@ -1,1 +1,1 @@
-"""Data source adapters for future experiments."""
+"""Dataset import adapters for reproducible research."""
