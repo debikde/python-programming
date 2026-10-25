@@ -4,12 +4,12 @@
 
 Исследовательский проект для анализа двигательной активности пользователей
 протезов нижних конечностей по данным носимых инерциальных датчиков (IMU).
-Будущая задача ML — классификация условий ходьбы.
+Задача ML — классификация условий ходьбы по циклам шага.
 Планируемый источник: **IMU data from lower-limb prosthetic users traversing
 real-world terrain** (NTNU), [DOI 10.18710/U8RGDL](https://doi.org/10.18710/U8RGDL).
 Это исследовательский прототип, а не клиническая система диагностики.
 
-## Текущий этап: проверка моделей на полной когорте NTNU
+## Текущий этап: лабораторная №10 на данных NTNU
 
 Реализованы устанавливаемый пакет `research_graph`, CLI `rg`, конфигурация,
 логирование, изолированные тесты, строгая типизация, pre-commit и CI.
@@ -28,7 +28,8 @@ P7_TT и P7_TF — два представления одного человек
 лабораторной №10 выбрана на 16 участниках и проверена на четырёх отложенных;
 macro-F1 на них составил 0,299. Прежний HTML-отчёт EDA полной когорты
 ещё не обновлялся.
-API, frontend и научный сайт пока не реализованы.
+FastAPI и интерфейс Vue 3/TypeScript реализованы для лабораторной №10.
+Научный сайт остаётся отдельным следующим этапом.
 Бейдж отражает удалённый workflow; текущие локальные изменения ещё не опубликованы.
 
 ## Окружение и установка
@@ -36,9 +37,9 @@ API, frontend и научный сайт пока не реализованы.
 Требуются Git, uv и **Python 3.12** (версия указана в `.python-version`).
 Стек выполнения: Pydantic, pydantic-settings, Typer.
 Инструменты разработки: Ruff, mypy, pytest, pytest-cov, pre-commit,
-pre-commit-hooks. Отдельная группа `eda` содержит NumPy, pandas, SciPy,
-Matplotlib, Jupyter, scikit-learn и markdown-it-py; обычный `uv sync` её не
-устанавливает. Зависимостей для веб-сервиса пока нет.
+pre-commit-hooks и httpx. FastAPI, Uvicorn, NumPy, pandas, SciPy,
+scikit-learn и joblib входят в основное окружение. Группа `eda` добавляет
+Jupyter и инструменты исследовательских ноутбуков.
 
 Установите uv по [официальной инструкции](https://docs.astral.sh/uv/getting-started/installation/)
 и убедитесь, что каталог с `uv` доступен в `PATH`:
@@ -51,11 +52,14 @@ uv python install 3.12
 В текущей локальной папке проекта:
 
 ```powershell
-uv sync --locked
+uv sync --locked --all-groups
 ```
 
 `uv sync` также поддерживается. Для воспроизводимой установки используйте
 `--locked`: несовпадение `pyproject.toml` и `uv.lock` станет ошибкой.
+Если `uv` не найден в PowerShell, в текущей Windows-среде он установлен как
+`C:\Users\Zina\AppData\Roaming\Python\Python312\Scripts\uv.exe`;
+его можно вызвать через `& "...\uv.exe"` или добавить каталог в `PATH`.
 Первичная установка требует интернета; сами тесты работают без сети.
 После будущей публикации можно будет клонировать репозиторий:
 
@@ -84,6 +88,62 @@ EDA по 17 людям и обозначена отдельно.
 `../research-publication-data/artifacts/reports/model_validation/`.
 Низкое качество на отложенных людях не позволяет заявлять о готовности модели
 к практическому применению.
+
+## Лабораторная №10: сервис и демонстрация
+
+Лабораторный пример с ипотекой адаптирован к NTNU IMU: одна запись ответа —
+**цикл шага**, а класс — числовой код `Terrain`. [Методика, сравнительная
+таблица и ограничения](docs/lab10_report.md) и
+[зафиксированная оценка](docs/lab10_validation.json) хранятся в репозитории.
+Экспериментальная модель обучена на 16 участниках и проверена на четырёх.
+Отдельная рабочая модель обучена на всех 20; её нельзя оценивать метриками
+экспериментальной копии как результат независимого теста.
+
+Модели находятся вне Git, в соседнем каталоге
+`../research-publication-data/artifacts/reports/model_validation/`:
+`terrain_predictor.joblib` и `terrain_predictor_final.joblib`. Чтобы
+воспроизвести рабочую копию на той же версии данных, выполните
+`uv run --locked --all-groups python scripts/prepare_lab10_artifacts.py`.
+Контрольные суммы разрешённых файлов закреплены в
+`src/research_graph/api/trusted_models.json`; если артефакт пересоздан с
+другой суммой, обновите реестр только после проверки его происхождения.
+Произвольные загруженные pickle/joblib-файлы не десериализуются.
+
+Запуск API из корня проекта:
+
+```powershell
+uv sync --locked --all-groups
+uv run --locked --all-groups python -m uvicorn research_graph.api.main:app --host 127.0.0.1 --port 8000
+```
+
+Во втором терминале запустите интерфейс:
+
+```powershell
+cd frontend
+npm ci
+npm run dev
+```
+
+Откройте `http://127.0.0.1:5173`. Загрузите один из указанных файлов модели,
+затем PS CSV из `../research-publication-data/data/raw/ntnu/P1/` с выбранной
+стороной протеза либо CSV с 140 именованными признаками. Доступен шаблон
+признаков и ручной ввод JSON-массива из 140 чисел. Ответ содержит вероятности
+восьми классов; метрики выводятся при наличии допустимого `Terrain`.
+Если тестовый CSV содержит не все восемь классов, ROC-AUC OvR не определён.
+OpenAPI доступен по `http://127.0.0.1:8000/docs`.
+
+`POST /upload-model` принимает только точную копию зарегистрированного файла;
+`POST /predict` принимает `{"records": [[...140 чисел...]]}`;
+`POST /predict-from-csv` принимает multipart-поля `file` и `side` (`left` или
+`right` для исходного PS CSV). `GET /model-info` сообщает схему и результаты.
+До загрузки модели маршруты предсказания отвечают HTTP 409.
+
+Локальные проверки: `uv run --locked --all-groups pytest`, `ruff check .`,
+`ruff format --check .`, `mypy`; во `frontend` — `npm run lint`,
+`npm run test`, `npm run build`, `npm audit --audit-level=high`.
+Такие же команды заданы в [SourceCraft CI](.sourcecraft/ci.yaml) и GitHub Actions.
+Промпты использования ИИ для отчёта сохранены в
+[docs/lab10_ai_prompts.md](docs/lab10_ai_prompts.md).
 
 ```powershell
 uv sync --locked --group eda
@@ -170,9 +230,9 @@ uv run pre-commit run --all-files
 ```
 
 mypy работает в строгом режиме для `src` и `tests`. pytest использует
-`--strict-markers`, branch coverage и порог 70%. Тесты изолируют `RG_*`, `.env`,
-кэш настроек и логирование; используют временные каталоги и не требуют
-реальных данных, токенов или интернета.
+`--strict-markers`, branch coverage и порог 70%. Тесты API создают небольшой
+синтетический доверенный артефакт, поэтому проходят и без локального архива
+NTNU; дополнительные проверки настоящей модели выполняются, если он есть.
 
 Хуки выполняют Ruff, mypy, проверку YAML, пробелов, окончаний строк,
 конфликтов слияния и размера файлов. Через `uv run --locked` они используют
@@ -195,7 +255,7 @@ GitHub Actions запускает проверки на push и pull request с 
 │   ├── config.py
 │   ├── logging_setup.py
 │   ├── sources/{__init__.py,ntnu_loader.py}
-│   ├── models/{__init__.py,schemas.py}
+│   ├── models/{schemas.py,terrain_predictor.py}
 │   ├── pipelines/
 │   │   ├── __init__.py
 │   │   ├── validation.py
@@ -204,10 +264,11 @@ GitHub Actions запускает проверки на push и pull request с 
 │   │   ├── training.py
 │   │   └── evaluation.py
 │   ├── storage/{__init__.py,artifacts.py}
-│   └── api/{__init__.py,main.py,routes.py,inference.py}
-├── frontend/README.md
+│   └── api/{main.py,routes.py,inference.py,trusted_models.json}
+├── frontend/{src/,package.json,package-lock.json,vite.config.ts}
 ├── website/{README.md,docs/index.md}
-├── notebooks/README.md
+├── notebooks/{01_ntnu_eda.ipynb,02_reproduce_wassall_2026.ipynb,
+│             03_model_experiments.ipynb,04_model_validation.ipynb}
 ├── data/{raw,processed}/.gitkeep
 ├── artifacts/{models,reports}/.gitkeep
 ├── tests/
@@ -216,13 +277,18 @@ GitHub Actions запускает проверки на push и pull request с 
 │   ├── test_config.py
 │   ├── test_cli.py
 │   ├── test_logging.py
-│   └── test_ntnu_loader.py
-├── docs/{dataset.md,research_plan.md,lab1_report.md,eda_report.md}
+│   ├── test_ntnu_loader.py
+│   ├── test_terrain_predictor.py
+│   └── test_api.py
+├── docs/{dataset.md,research_plan.md,lab10_report.md,
+│         lab10_validation.json,lab10_ai_prompts.md}
 ├── scripts/check_repository.py
 ├── scripts/import_ntnu.py
 ├── scripts/eda_ntnu.py
 ├── scripts/render_eda_report.py
+├── scripts/prepare_lab10_artifacts.py
 ├── .github/workflows/ci.yml
+├── .sourcecraft/ci.yaml
 ├── .env.example
 ├── .gitattributes
 ├── .gitignore
@@ -235,19 +301,17 @@ GitHub Actions запускает проверки на push и pull request с 
 └── README.md
 ```
 
-`models/` предназначен для схем данных, а обученные модели будут храниться
-в `artifacts/models/`. `sources/ntnu_loader.py` реализует импорт архива.
-Файлы в `models`, `pipelines`, `storage` и `api` — заготовки будущих этапов.
-Данные и артефакты исключены из Git;
-сохраняются только маркеры каталогов. `tests/fixtures/` зарезервирован для
-небольших тестовых примеров, которые появятся при работе с данными.
+`models/terrain_predictor.py` содержит сохранённую схему и предобработку;
+`api/` содержит работающие маршруты лабораторной. `sources/ntnu_loader.py`
+реализует импорт архива. Часть модулей `pipelines/` и `storage/` пока остаётся
+заготовками будущих этапов.
+Данные и обученные артефакты исключены из Git; версия оценок и контрольные
+суммы артефактов зафиксированы в документации и реестре.
 
 ## Будущие этапы
 
-После выполненного импорта и EDA: согласование QC → подготовка сигналов и признаков → сравнение минимум
-двух моделей → сохранение модели → FastAPI (`/upload-model`, `/predict`,
-`/predict-from-csv`) → frontend → научный сайт на MkDocs → итоговый CI в SourceCraft.
-Локальные ноутбуки EDA и воспроизведения уже добавлены; совместимость с Colab
+После лабораторной №10 остаются дополнительная независимая когорта,
+проверка спорной разметки NTNU и научный сайт. Совместимость ноутбуков с Colab
 пока не проверялась.
 Подробности: [план](docs/research_plan.md) и [описание датасета](docs/dataset.md).
 
@@ -258,4 +322,4 @@ GitHub Actions запускает проверки на push и pull request с 
 отдельной проверки и согласования. Перед будущей публикацией нужно проверить
 историю и основную ветку удалённого репозитория, согласовать их с локальной
 историей, затем отдельно проверить первый запуск Actions и бейдж.
-Обучение моделей и разработка сервиса потребуют следующего отдельного этапа.
+Локальные коммиты и модели не отправлялись в удалённый репозиторий.

@@ -1,0 +1,31 @@
+on:
+  push:
+    - workflows: [lab10-checks]
+  pull_request:
+    - workflows: [lab10-checks]
+
+workflows:
+  lab10-checks:
+    tasks:
+      - name: python-api
+        cubes:
+          - name: test-and-lint-python
+            image: docker.io/library/python:3.12-slim
+            script:
+              - pip install uv==0.12.19
+              - uv sync --locked --all-groups
+              - uv run --locked ruff check .
+              - uv run --locked ruff format --check .
+              - uv run --locked mypy
+              - uv run --locked pytest
+      - name: vue-frontend
+        cubes:
+          - name: test-and-build-vue
+            image: docker.io/library/node:22-bookworm
+            script:
+              - cd frontend
+              - npm ci
+              - npm run lint
+              - npm run test
+              - npm run build
+              - npm audit --audit-level=high
