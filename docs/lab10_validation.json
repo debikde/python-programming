@@ -1,0 +1,116 @@
+{
+  "source_notebook": "notebooks/04_model_validation.ipynb",
+  "dataset_sha256": "920aae0f2f1e16b5018ef275888e05288f7e015d2b818f81c39a6c30e7262fa4",
+  "unit": "step_cycle",
+  "classes": [
+    1,
+    2,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "selection": {
+    "algorithm": "Random Forest",
+    "parameter_max_features": 15,
+    "feature_set": "без каденса",
+    "feature_count": 140,
+    "based_only_on": "four development-group folds (16 people)"
+  },
+  "experimental_model": {
+    "filename": "terrain_predictor.joblib",
+    "sha256": "d93664d235deb1e7a0a4879d560fad1cde2c9f9cba29daabd9097258cc3a09c1",
+    "training_people": [
+      "P2",
+      "P3",
+      "P4",
+      "P6",
+      "P7",
+      "P8",
+      "P9",
+      "P10",
+      "P11",
+      "P12",
+      "P13",
+      "P14",
+      "P16",
+      "P17",
+      "P18",
+      "P20"
+    ],
+    "heldout_people": [
+      "P5",
+      "P19",
+      "P15",
+      "P1"
+    ],
+    "holdout_metrics": {
+      "accuracy": 0.4139633286318759,
+      "macro_f1": 0.2987119865510118,
+      "balanced_accuracy": 0.3091881769614064,
+      "roc_auc_ovr": 0.655059477315267
+    },
+    "by_person": [
+      {
+        "participant": "P1",
+        "cycles": 827,
+        "accuracy": 0.35792019347037485
+      },
+      {
+        "participant": "P15",
+        "cycles": 140,
+        "accuracy": 0.6571428571428571
+      },
+      {
+        "participant": "P19",
+        "cycles": 217,
+        "accuracy": 0.21658986175115208
+      },
+      {
+        "participant": "P5",
+        "cycles": 234,
+        "accuracy": 0.6495726495726496
+      }
+    ],
+    "holdout_class_recall": {
+      "1": 0.8145833333333333,
+      "2": 0.29605263157894735,
+      "4": 0.5098039215686274,
+      "5": 0.6116504854368932,
+      "6": 0.0,
+      "7": 0.0,
+      "8": 0.02072538860103627,
+      "9": 0.2206896551724138
+    }
+  },
+  "five_fold_lso_fixed_configs": [
+    {
+      "algorithm": "N2: train-only StandardScaler",
+      "accuracy": 0.5024429200754738,
+      "macro_f1": 0.464183090355515,
+      "balanced_accuracy": 0.47222469888202123,
+      "roc_auc_ovr": 0.7975286565150379
+    },
+    {
+      "algorithm": "M2: Logistic Regression",
+      "accuracy": 0.4393797758338276,
+      "macro_f1": 0.42773615904652595,
+      "balanced_accuracy": 0.4665127643336248,
+      "roc_auc_ovr": 0.7856422449052818
+    },
+    {
+      "algorithm": "M3: Extra Trees",
+      "accuracy": 0.46611819208904803,
+      "macro_f1": 0.3957250320533822,
+      "balanced_accuracy": 0.36979184504879015,
+      "roc_auc_ovr": 0.7861838595389928
+    }
+  ],
+  "limits": [
+    "The four held-out people appeared in earlier project notebooks.",
+    "Codes 6 and 7 have zero recall on this held-out group.",
+    "Terrain 8/9 names and some NTNU labels remain uncertain."
+  ]
+}
