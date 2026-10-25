@@ -419,9 +419,7 @@ def main():
     strides = save_table(stride_rows, "strides_ps", output)
     window_df = save_table(windows, "windows_2s_stride1s", output)
     pair_df = save_table(pairs, "sensor_pair_checks", output)
-    os_tr_pairs = pair_df.loc[
-        pair_df.left.eq("OS") & pair_df.right.eq("TR")
-    ].copy()
+    os_tr_pairs = pair_df.loc[pair_df.left.eq("OS") & pair_df.right.eq("TR")].copy()
     file_hashes = files.set_index(["participant", "trial", "sensor"]).sha256
     os_tr_pairs["byte_identical"] = [
         file_hashes.loc[(row.participant, row.trial, "OS")]

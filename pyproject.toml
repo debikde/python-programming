@@ -48,6 +48,7 @@ packages = ["src/research_graph"]
 target-version = "py312"
 line-length = 88
 src = ["src", "tests"]
+extend-exclude = ["*.ipynb"]
 
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "N", "PT", "UP", "W"]
