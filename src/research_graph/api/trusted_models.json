@@ -1,0 +1,14 @@
+{
+  "models": [
+    {
+      "name": "experimental_16_people",
+      "sha256": "d93664d235deb1e7a0a4879d560fad1cde2c9f9cba29daabd9097258cc3a09c1",
+      "filename": "terrain_predictor.joblib"
+    },
+    {
+      "name": "working_20_people",
+      "sha256": "6623ade03a1a69fc2cc3b5ec795238d013383771eee7d18ae91988db04b973b9",
+      "filename": "terrain_predictor_final.joblib"
+    }
+  ]
+}
