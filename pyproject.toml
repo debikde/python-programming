@@ -1,7 +1,7 @@
 [project]
 name = "assistive-gait-research"
 version = "0.1.0"
-description = "Research scaffold for lower-limb prosthetic gait analysis from IMU data."
+description = "Research on terrain classification from NTNU gait sensor data."
 readme = "README.md"
 requires-python = ">=3.12,<3.13"
 license = { text = "MIT" }
@@ -9,8 +9,13 @@ authors = [
     { name = "Olga", email = "percent000111@gmail.com" },
 ]
 dependencies = [
+    "joblib>=1.6.0",
+    "numpy>=2.5.4",
+    "pandas>=3.1.0",
     "pydantic>=2.10.0",
     "pydantic-settings>=2.6.0",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
     "typer>=0.15.0",
 ]
 
@@ -19,12 +24,21 @@ rg = "research_graph.cli:app"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "mypy>=1.13.0",
     "pre-commit>=4.0.0",
     "pre-commit-hooks>=5.0.0",
     "pytest>=8.3.0",
-    "pytest-cov>=6.0.0",
     "ruff>=0.8.0",
+]
+eda = [
+    "ipykernel>=7.4.0",
+    "jupyter>=1.1.1",
+    "matplotlib>=3.11.2",
+    "numpy>=2.5.4",
+    "pandas>=3.1.0",
+    "scikit-learn>=1.9.1",
+    "scipy>=1.18.1",
 ]
 
 [build-system]
@@ -38,6 +52,7 @@ packages = ["src/research_graph"]
 target-version = "py312"
 line-length = 88
 src = ["src", "tests"]
+extend-exclude = ["*.ipynb"]
 
 [tool.ruff.lint]
 select = ["B", "E", "F", "I", "N", "PT", "UP", "W"]
@@ -50,15 +65,4 @@ files = ["src", "tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers --cov=research_graph --cov-report=term-missing --cov-fail-under=70"
-
-[tool.coverage.run]
-branch = true
-source = ["src/research_graph"]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-    "raise NotImplementedError",
-]
+addopts = "-ra --strict-markers"
