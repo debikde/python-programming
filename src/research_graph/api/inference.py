@@ -23,22 +23,16 @@ from sklearn.preprocessing import StandardScaler  # type: ignore[import-untyped]
 
 from research_graph.models.terrain_predictor import (
     FEATURE_NAMES,
-    SOURCE_CHANNELS,
     TERRAIN_CODES,
     TerrainPredictor,
     stride_features,
 )
+from research_graph.paths import report_dir
+from research_graph.pipelines.preprocessing import SOURCE_CHANNELS
 
 MAX_MODEL_BYTES = 20 * 1024 * 1024
 MAX_CSV_BYTES = 10 * 1024 * 1024
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_ARTIFACT_DIR = (
-    PROJECT_ROOT.parent
-    / "research-publication-data"
-    / "artifacts"
-    / "reports"
-    / "model_validation"
-)
+DEFAULT_ARTIFACT_DIR = report_dir("model_validation")
 
 
 @dataclass(frozen=True)

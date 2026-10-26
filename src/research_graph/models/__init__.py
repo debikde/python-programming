@@ -1,1 +1,1 @@
-"""Domain models for future experiment metadata."""
+"""Сохранённая модель классификации Terrain."""

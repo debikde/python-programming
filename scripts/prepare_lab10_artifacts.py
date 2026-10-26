@@ -1,12 +1,10 @@
-"""Freeze the existing validation and fit one separate all-person working model.
+"""Обучить рабочую модель на 20 людях по параметрам из ноутбука 04.
 
-This is not a new experiment: the algorithm, channels and parameter were fixed
-in notebook 04. The held-out assessment always belongs to its 16-person model.
+Независимая оценка относится к отдельной модели, обученной на 16 людях.
 """
 
 import hashlib
 import json
-from pathlib import Path
 
 import joblib
 import numpy as np
@@ -19,10 +17,11 @@ from research_graph.models.terrain_predictor import (
     TerrainPredictor,
     stride_features,
 )
+from research_graph.paths import NTNU_DIR, PROJECT_ROOT
+from research_graph.pipelines.preprocessing import RIGHT_GROUPS
 
-ROOT = Path(__file__).resolve().parents[1]
-DATA_DIR = ROOT.parent / "research-publication-data" / "data" / "raw" / "ntnu"
-RIGHT_GROUPS = {"P3", "P4", "P5", "P6", "P7_TT", "P11", "P13", "P14", "P19", "P20"}
+DATA_DIR = NTNU_DIR
+ROOT = PROJECT_ROOT
 
 
 def main() -> None:

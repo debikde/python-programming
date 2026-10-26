@@ -1,1 +1,1 @@
-"""Public API helpers for future integrations."""
+"""API лабораторной №10."""

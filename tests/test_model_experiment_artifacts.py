@@ -15,7 +15,7 @@ REPORT = (
     / "reports"
     / "model_experiments"
 )
-BASELINE = ROOT / "artifacts" / "reports" / "reproduction_wassall_2026"
+BASELINE = REPORT.parent / "reproduction_wassall_2026"
 
 
 def read_rows(name: str) -> list[dict[str, str]]:
