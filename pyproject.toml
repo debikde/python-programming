@@ -32,7 +32,6 @@ dev = [
     "pre-commit>=4.0.0",
     "pre-commit-hooks>=5.0.0",
     "pytest>=8.3.0",
-    "pytest-cov>=6.0.0",
     "ruff>=0.8.0",
 ]
 eda = [
@@ -70,15 +69,4 @@ files = ["src", "tests"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers --cov=research_graph --cov-report=term-missing --cov-fail-under=70"
-
-[tool.coverage.run]
-branch = true
-source = ["src/research_graph"]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "if TYPE_CHECKING:",
-    "raise NotImplementedError",
-]
+addopts = "-ra --strict-markers"

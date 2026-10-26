@@ -67,3 +67,5 @@ npm run build
 ```
 
 CI настроен в `.sourcecraft/ci.yaml` и `.github/workflows/ci.yml`. Промпты для отчёта по лабораторной сохранены в [отдельном файле](docs/lab10_ai_prompts.md). Git-репозиторий связан с [debikde/python-programming](https://github.com/debikde/python-programming), но локальные изменения не отправляются автоматически.
+
+Тесты сведены к двум файлам: `tests/test_api.py` проверяет загрузку модели и предсказания, `frontend/src/api.test.ts` — запросы интерфейса. Исследовательские результаты сверяются по сохранённым таблицам и выполненным ноутбукам.
