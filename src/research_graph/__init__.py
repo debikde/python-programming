@@ -1,3 +1,3 @@
-"""Assistive Gait Research: configuration and CLI for the research scaffold."""
+"""Код исследования походки и сервиса классификации Terrain."""
 
 __version__ = "0.1.0"

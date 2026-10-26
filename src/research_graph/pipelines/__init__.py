@@ -1,1 +1,1 @@
-"""Pipeline orchestration for future experiment runs."""
+"""Обработка сигнала и расчёт признаков шага."""

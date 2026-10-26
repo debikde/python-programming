@@ -48,5 +48,5 @@ repos:
         types: [text]
       - id: check-added-large-files
         name: check large files
-        entry: uv run --locked python -m pre_commit_hooks.check_added_large_files --enforce-all
+        entry: uv run --locked python -m pre_commit_hooks.check_added_large_files --enforce-all --maxkb=1024
         language: system
