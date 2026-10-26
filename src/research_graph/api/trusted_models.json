@@ -2,7 +2,7 @@
   "models": [
     {
       "name": "experimental_16_people",
-      "sha256": "d93664d235deb1e7a0a4879d560fad1cde2c9f9cba29daabd9097258cc3a09c1",
+      "sha256": "43041abe900e5c1e8bc411ad8d6921213cc195fd6e9ea680579e3c706fedb43d",
       "filename": "terrain_predictor.joblib"
     },
     {
