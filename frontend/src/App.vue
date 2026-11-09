@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import {
-  TERRAIN_CODES, modelInfo, parseRecords, predictCsv, predictRows, uploadModel,
+  TERRAIN_CODES, modelInfo, parseRecords, predictCsv, predictRows, resultsCsv, uploadModel,
   type ModelInfo, type PredictionResponse,
 } from './api'
 
@@ -10,7 +10,8 @@ const result = ref<PredictionResponse | null>(null)
 const busy = ref(false)
 const error = ref('')
 const csvFile = ref<File | null>(null)
-const side = ref('left')
+const side = ref('')
+const selectedModelName = ref('')
 const manualInput = ref('')
 
 function percent(value: number | null | undefined): string {
@@ -19,7 +20,7 @@ function percent(value: number | null | undefined): string {
 
 async function refresh(): Promise<void> {
   try {
-    info.value = await modelInfo()
+    info.value = await modelInfo(selectedModelName.value || undefined)
   } catch (caught) {
     error.value = `API недоступен: ${String(caught)}`
   }
@@ -28,6 +29,7 @@ async function refresh(): Promise<void> {
 async function run(action: () => Promise<void>): Promise<void> {
   busy.value = true
   error.value = ''
+  result.value = null
   try {
     await action()
   } catch (caught) {
@@ -45,14 +47,21 @@ function onModelChange(event: Event): void {
   const file = selectedFile(event)
   if (!file) return
   void run(async () => {
-    await uploadModel(file)
-    result.value = null
+    const uploaded = await uploadModel(file)
+    selectedModelName.value = uploaded.model_name
     await refresh()
   })
 }
 
 function onCsvChange(event: Event): void {
   csvFile.value = selectedFile(event)
+  result.value = null
+}
+
+function useDefaultModel(): void {
+  selectedModelName.value = ''
+  result.value = null
+  void refresh()
 }
 
 function submitCsv(): void {
@@ -60,13 +69,13 @@ function submitCsv(): void {
     error.value = 'Сначала выберите CSV-файл.'
     return
   }
-  void run(async () => { result.value = await predictCsv(csvFile.value!, side.value) })
+  void run(async () => { result.value = await predictCsv(csvFile.value!, side.value, selectedModelName.value) })
 }
 
 function submitManual(): void {
   void run(async () => {
     const records = parseRecords(manualInput.value, info.value?.feature_names?.length ?? 140)
-    result.value = await predictRows(records)
+    result.value = await predictRows(records, selectedModelName.value)
   })
 }
 
@@ -87,13 +96,7 @@ function downloadTemplate(): void {
 
 function downloadResults(): void {
   if (!result.value) return
-  const headings = ['row', 'step', 'run', 'true_terrain', 'predicted_terrain',
-    ...TERRAIN_CODES.map((code) => `probability_${code}`)]
-  const lines = result.value.rows.map((row) => [
-    row.row ?? '', row.step ?? '', row.run ?? '', row.true_terrain ?? '',
-    row.predicted_terrain, ...TERRAIN_CODES.map((code) => row.probabilities[String(code)]),
-  ].join(','))
-  saveFile('terrain_predictions.csv', [headings.join(','), ...lines].join('\n'))
+  saveFile('terrain_predictions.csv', resultsCsv(result.value))
 }
 
 onMounted(() => { void refresh() })
@@ -113,17 +116,18 @@ onMounted(() => { void refresh() })
 
     <section class="card" aria-labelledby="model-title">
       <div class="section-head">
-        <div><span class="step">01 / Модель</span><h2 id="model-title">Загрузка артефакта</h2></div>
+        <div><span class="step">01 / Модель</span><h2 id="model-title">Модель классификации</h2></div>
         <span class="status" :class="{ ready: info?.loaded }">
           {{ info?.loaded ? 'Модель загружена' : 'Модель не загружена' }}
         </span>
       </div>
-      <p>Выберите экспериментальный или рабочий файл из локальной папки результатов.
-        Принимаются только артефакты, чьи контрольные суммы зарегистрированы в проекте.</p>
+      <p>Рабочая модель обучена на 20 участниках и загружается при запуске API.
+        Другой зарегистрированный артефакт можно выбрать дополнительно.</p>
       <label class="file-picker">
-        <span>Выбрать файл .joblib</span>
+        <span>Загрузить другую модель .joblib (необязательно)</span>
         <input type="file" accept=".joblib" :disabled="busy" @change="onModelChange">
       </label>
+      <button v-if="selectedModelName" class="secondary" :disabled="busy" @click="useDefaultModel">Вернуться к рабочей модели</button>
       <p v-if="info?.loaded" class="hint">{{ info.model_name }} ·
         {{ info.feature_names?.length }} признаков · {{ info.training_people?.length }} участников в обучении</p>
       <p v-else class="hint">Доступные ID: {{ info?.trusted_models.join(', ') || 'загрузка списка…' }}</p>
@@ -138,8 +142,9 @@ onMounted(() => { void refresh() })
             Подготовленный CSV: одна строка на цикл и имена 140 признаков.</p>
           <input type="file" accept=".csv,text/csv" :disabled="busy || !info?.loaded" @change="onCsvChange">
           <label class="field">Сторона протеза для PS CSV
-            <select v-model="side"><option value="left">Левая</option><option value="right">Правая</option></select>
+            <select v-model="side"><option value="">Выберите для PS CSV</option><option value="left">Левая</option><option value="right">Правая</option></select>
           </label>
+          <p class="hint">Для CSV с готовыми признаками сторона не нужна. Для PS CSV её нужно выбрать явно.</p>
           <button :disabled="busy || !info?.loaded || !csvFile" @click="submitCsv">Обработать CSV</button>
           <button class="secondary" :disabled="!info?.loaded" @click="downloadTemplate">Шаблон признаков</button>
         </div>

@@ -3,7 +3,7 @@
 from typing import Annotated
 
 import numpy as np
-from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
+from fastapi import APIRouter, File, Form, Header, HTTPException, Request, UploadFile
 from pydantic import BaseModel, Field
 
 from research_graph.api.inference import (
@@ -25,10 +25,11 @@ class PredictRequest(BaseModel):
     records: list[list[float]] = Field(min_length=1, max_length=1000)
 
 
-def current_model(request: Request) -> TerrainPredictor:
-    model: TerrainPredictor | None = request.app.state.model
+def current_model(request: Request, model_name: str | None) -> TerrainPredictor:
+    name = model_name or request.app.state.default_model_name
+    model: TerrainPredictor | None = request.app.state.models.get(name)
     if model is None:
-        raise HTTPException(status_code=409, detail="Upload a trusted model first")
+        raise HTTPException(status_code=409, detail="Selected model is not loaded")
     return model
 
 
@@ -38,10 +39,17 @@ def health() -> dict[str, str]:
 
 
 @router.get("/model-info")
-def model_info(request: Request) -> dict[str, object]:
-    model: TerrainPredictor | None = request.app.state.model
+def model_info(
+    request: Request,
+    model_name: str | None = Header(default=None, alias="X-Terrain-Model"),
+) -> dict[str, object]:
+    name = model_name or request.app.state.default_model_name
+    model: TerrainPredictor | None = request.app.state.models.get(name)
     base: dict[str, object] = {
         "loaded": model is not None,
+        "model_name": name,
+        "default_model_name": request.app.state.default_model_name,
+        "loaded_models": list(request.app.state.models),
         "trusted_models": list(request.app.state.registry),
         "unit": "step_cycle",
         "limitations": [
@@ -53,7 +61,6 @@ def model_info(request: Request) -> dict[str, object]:
     if model is not None:
         base.update(
             {
-                "model_name": request.app.state.model_name,
                 "feature_names": list(model.feature_names),
                 "classes": list(model.classes_),
                 "training_people": model.metadata.get("training_people"),
@@ -74,8 +81,9 @@ async def upload_model(
         )
     except ValueError as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
-    request.app.state.model = model
-    request.app.state.model_name = name
+    request.app.state.models[name] = model
+    if request.app.state.default_model_name is None:
+        request.app.state.default_model_name = name
     return {
         "status": "loaded",
         "model_name": name,
@@ -85,8 +93,12 @@ async def upload_model(
 
 
 @router.post("/predict")
-def predict(request: Request, body: PredictRequest) -> dict[str, object]:
-    model = current_model(request)
+def predict(
+    request: Request,
+    body: PredictRequest,
+    model_name: str | None = Header(default=None, alias="X-Terrain-Model"),
+) -> dict[str, object]:
+    model = current_model(request, model_name)
     try:
         matrix = np.asarray(body.records, dtype="float32")
         predicted, probabilities = classify_matrix(model, matrix)
@@ -94,7 +106,7 @@ def predict(request: Request, body: PredictRequest) -> dict[str, object]:
         raise HTTPException(status_code=422, detail=str(error)) from error
     rows = [
         {
-            "features": body.records[index],
+            "input": dict(zip(model.feature_names, body.records[index], strict=True)),
             "predicted_terrain": int(predicted[index]),
             "probabilities": {
                 str(code): float(probabilities[index, class_index])
@@ -103,7 +115,11 @@ def predict(request: Request, body: PredictRequest) -> dict[str, object]:
         }
         for index in range(len(matrix))
     ]
-    return {"unit": "step_cycle", "rows": rows}
+    return {
+        "unit": "step_cycle",
+        "input_columns": list(model.feature_names),
+        "rows": rows,
+    }
 
 
 @router.post("/predict-from-csv")
@@ -111,8 +127,9 @@ async def predict_from_csv(
     request: Request,
     file: Annotated[UploadFile, File()],
     side: Annotated[str | None, Form()] = None,
+    model_name: str | None = Header(default=None, alias="X-Terrain-Model"),
 ) -> dict[str, object]:
-    model = current_model(request)
+    model = current_model(request, model_name)
     payload = await file.read(MAX_CSV_BYTES + 1)
     try:
         frame = parse_csv(payload)

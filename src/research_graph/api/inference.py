@@ -33,6 +33,8 @@ from research_graph.pipelines.preprocessing import SOURCE_CHANNELS
 MAX_MODEL_BYTES = 20 * 1024 * 1024
 MAX_CSV_BYTES = 10 * 1024 * 1024
 DEFAULT_ARTIFACT_DIR = report_dir("model_validation")
+BUNDLED_ARTIFACT_DIR = Path(__file__).with_name("assets")
+DEFAULT_MODEL_NAME = "working_20_people"
 
 
 @dataclass(frozen=True)
@@ -159,7 +161,7 @@ def parse_csv(payload: bytes) -> pd.DataFrame:
 def predict_csv(
     model: TerrainPredictor, frame: pd.DataFrame, *, side: str | None
 ) -> dict[str, object]:
-    """Accept PS samples or a table of 140/150 stride-level features."""
+    """Return one complete input and prediction per step cycle."""
     raw_columns = set(SOURCE_CHANNELS) | {"Steps"}
     if raw_columns.issubset(frame.columns):
         if side not in {"left", "right"}:
@@ -169,6 +171,10 @@ def predict_csv(
             raise ValueError("No valid step cycles in CSV")
         matrix = features[:, model.selected_indices]
         details = strides.to_dict(orient="records")
+        input_columns = list(model.feature_names)
+        input_rows = [
+            dict(zip(input_columns, values.tolist(), strict=True)) for values in matrix
+        ]
         labels: list[int | None] = [None] * len(details)
         if "Terrain" in frame:
             _, labelled = stride_features(frame, side, require_terrain=True)
@@ -191,6 +197,18 @@ def predict_csv(
             raise ValueError("Prepared CSV exceeds 10000 cycles")
         matrix = frame.loc[:, list(model.feature_names)].to_numpy(dtype="float32")
         details = [{"row": int(i)} for i in range(len(frame))]
+        input_columns = list(frame.columns)
+        input_rows = []
+        for original in frame.to_dict(orient="records"):
+            cleaned: dict[str, object] = {}
+            for name, value in original.items():
+                if pd.isna(value):
+                    cleaned[name] = None
+                elif isinstance(value, np.generic):
+                    cleaned[name] = value.item()
+                else:
+                    cleaned[name] = value
+            input_rows.append(cleaned)
         if "Terrain" in frame:
             values = pd.to_numeric(frame["Terrain"], errors="coerce")
             labels = [int(v) if v in TERRAIN_CODES else None for v in values]
@@ -203,6 +221,7 @@ def predict_csv(
         rows.append(
             {
                 **detail,
+                "input": input_rows[index],
                 "true_terrain": labels[index],
                 "predicted_terrain": int(predicted[index]),
                 "probabilities": {
@@ -219,6 +238,7 @@ def predict_csv(
     return {
         "unit": "step_cycle",
         "input_kind": kind,
+        "input_columns": input_columns,
         "rows": rows,
         "metrics": metrics,
         "labelled_cycles": len(valid),

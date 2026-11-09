@@ -16,7 +16,7 @@ from sklearn.ensemble import RandomForestClassifier  # type: ignore[import-untyp
 from sklearn.pipeline import Pipeline  # type: ignore[import-untyped]
 from sklearn.preprocessing import StandardScaler  # type: ignore[import-untyped]
 
-from research_graph.api.inference import validate_model
+from research_graph.api.inference import BUNDLED_ARTIFACT_DIR, validate_model
 from research_graph.api.main import create_app
 from research_graph.models.terrain_predictor import (
     FEATURE_NAMES,
@@ -67,7 +67,11 @@ def fitted_model(tmp_path: Path) -> tuple[TestClient, TerrainPredictor, bytes]:
         encoding="utf-8",
     )
     return (
-        TestClient(create_app(registry_path=registry, artifact_dir=tmp_path)),
+        TestClient(
+            create_app(
+                registry_path=registry, artifact_dir=tmp_path, default_model_name=None
+            )
+        ),
         model,
         payload,
     )
@@ -127,6 +131,7 @@ def test_model_upload_and_prepared_prediction(
     assert len(rows) == 2
     assert rows[0]["predicted_terrain"] == int(model.predict(np.array([row]))[0])
     assert sum(rows[0]["probabilities"].values()) == pytest.approx(1.0)
+    assert rows[0]["input"] == dict(zip(model.feature_names, row, strict=True))
     assert client.post("/predict", json={"records": [[1, 2]]}).status_code == 422
     assert client.post("/predict", json={"records": []}).status_code == 422
 
@@ -156,6 +161,8 @@ def test_raw_csv_matches_predictor_and_handles_labels(
     result = response.json()
     assert result["unit"] == "step_cycle"
     assert result["input_kind"] == "imu_cycles"
+    assert result["input_columns"] == list(model.feature_names)
+    assert list(result["rows"][0]["input"]) == list(model.feature_names)
     assert len(result["rows"]) == result["labelled_cycles"] == 2
     expected = model.predict_from_csv(frame.drop(columns="Terrain"), side="left")
     assert [row["predicted_terrain"] for row in result["rows"]] == expected[
@@ -183,12 +190,15 @@ def test_prepared_csv_and_invalid_inputs(
     upload(client, payload)
     frame = pd.DataFrame(np.zeros((8, 140)), columns=model.feature_names)
     frame["Terrain"] = list(TERRAIN_CODES)
+    frame["note"] = ["a,b"] + ["ok"] * 7
     body = frame.to_csv(index=False).encode()
     response = client.post("/predict-from-csv", files={"file": ("features.csv", body)})
     assert response.status_code == 200
     assert response.json()["input_kind"] == "prepared_cycles"
     assert response.json()["metrics"]["roc_auc_ovr"] is not None
     assert len(response.json()["rows"]) == 8
+    assert response.json()["rows"][0]["input"]["note"] == "a,b"
+    assert response.json()["input_columns"] == list(frame.columns)
 
     bad = client.post("/predict-from-csv", files={"file": ("bad.csv", b"x,y\n1,2")})
     assert bad.status_code == 422
@@ -197,4 +207,34 @@ def test_prepared_csv_and_invalid_inputs(
     assert (
         client.post("/upload-model", files={"file": ("x", io.BytesIO(b""))}).status_code
         == 400
+    )
+
+
+def test_bundled_model_is_ready_and_upload_is_optional() -> None:
+    assert (BUNDLED_ARTIFACT_DIR / "terrain_predictor_final.joblib").is_file()
+    client = TestClient(create_app())
+    info = client.get("/model-info").json()
+    assert info["loaded"] is True
+    assert info["model_name"] == info["default_model_name"] == "working_20_people"
+    assert len(info["feature_names"]) == 140
+    assert len(info["training_people"]) == 20
+    response = client.post("/predict", json={"records": [[0.0] * 140]})
+    assert response.status_code == 200
+    assert len(response.json()["rows"]) == 1
+
+    experimental = (BUNDLED_ARTIFACT_DIR / "terrain_predictor.joblib").read_bytes()
+    assert upload(client, experimental).status_code == 200
+    assert client.get("/model-info").json()["model_name"] == "working_20_people"
+    selected = client.get(
+        "/model-info", headers={"X-Terrain-Model": "experimental_16_people"}
+    ).json()
+    assert selected["loaded"] is True
+    assert len(selected["training_people"]) == 16
+    assert (
+        client.post(
+            "/predict",
+            json={"records": [[0.0] * 140]},
+            headers={"X-Terrain-Model": "missing"},
+        ).status_code
+        == 409
     )

@@ -8,6 +8,7 @@ export type Metrics = {
 }
 
 export type PredictionRow = {
+  input: Record<string, string | number | null>
   row?: number
   step?: number
   run?: number
@@ -25,6 +26,8 @@ export type Validation = {
 export type ModelInfo = {
   loaded: boolean
   model_name?: string
+  default_model_name?: string
+  loaded_models: string[]
   feature_names?: string[]
   classes?: number[]
   trusted_models: string[]
@@ -35,6 +38,7 @@ export type ModelInfo = {
 
 export type PredictionResponse = {
   unit: string
+  input_columns: string[]
   input_kind?: string
   rows: PredictionRow[]
   metrics?: Metrics | null
@@ -52,30 +56,50 @@ async function read<T>(response: Response): Promise<T> {
   return body as T
 }
 
-export async function modelInfo(): Promise<ModelInfo> {
-  return read<ModelInfo>(await fetch(`${base}/model-info`))
+function modelHeader(modelName?: string): Record<string, string> {
+  return modelName ? { 'X-Terrain-Model': modelName } : {}
 }
 
-export async function uploadModel(file: File): Promise<void> {
+export async function modelInfo(modelName?: string): Promise<ModelInfo> {
+  return read<ModelInfo>(await fetch(`${base}/model-info`, { headers: modelHeader(modelName) }))
+}
+
+export async function uploadModel(file: File): Promise<{ model_name: string }> {
   const form = new FormData()
   form.append('file', file)
-  await read(await fetch(`${base}/upload-model`, { method: 'POST', body: form }))
+  return read(await fetch(`${base}/upload-model`, { method: 'POST', body: form }))
 }
 
-export async function predictRows(records: number[][]): Promise<PredictionResponse> {
+export async function predictRows(records: number[][], modelName?: string): Promise<PredictionResponse> {
   return read<PredictionResponse>(await fetch(`${base}/predict`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json', ...modelHeader(modelName) },
     body: JSON.stringify({ records }),
   }))
 }
 
-export async function predictCsv(file: File, side: string): Promise<PredictionResponse> {
+export async function predictCsv(file: File, side?: string, modelName?: string): Promise<PredictionResponse> {
   const form = new FormData()
   form.append('file', file)
-  form.append('side', side)
+  if (side) form.append('side', side)
   return read<PredictionResponse>(await fetch(`${base}/predict-from-csv`, {
-    method: 'POST', body: form,
+    method: 'POST', body: form, headers: modelHeader(modelName),
   }))
+}
+
+export function resultsCsv(result: PredictionResponse): string {
+  const headings = [...result.input_columns, 'row', 'step', 'run', 'samples',
+    'true_terrain', 'predicted_terrain',
+    ...TERRAIN_CODES.map((code) => `probability_${code}`)]
+  const cell = (value: string | number | null | undefined): string => {
+    const text = value == null ? '' : String(value)
+    return /[",\r\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text
+  }
+  const lines = result.rows.map((row) => [
+    ...result.input_columns.map((name) => row.input[name]),
+    row.row, row.step, row.run, row.samples, row.true_terrain, row.predicted_terrain,
+    ...TERRAIN_CODES.map((code) => row.probabilities[String(code)]),
+  ].map(cell).join(','))
+  return [headings.map(cell).join(','), ...lines].join('\n')
 }
 
 export function parseRecords(text: string, featureCount: number): number[][] {
