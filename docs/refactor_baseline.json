@@ -1,0 +1,231 @@
+{
+  "missing": [
+    "notebooks/01_ntnu_eda_simple.ipynb (not present before refactor)"
+  ],
+  "files": {
+    "notebooks/01_ntnu_eda.ipynb": {
+      "sha256": "c3a4eab003ff8294ee3bec578ac6f57ab4c60be5dc16e487661dfcf777a3f9ee",
+      "bytes": 253730
+    },
+    "notebooks/02_reproduce_wassall_2026.ipynb": {
+      "sha256": "63b8cdbcc7107526e719055ebab74e4da165852e9a0372a11dc659625f452df2",
+      "bytes": 511661
+    },
+    "notebooks/03_model_experiments.ipynb": {
+      "sha256": "6261bdd10f47a5e2564a3bf15d104cb644cf28952225c3d6d8860592014a86a7",
+      "bytes": 478215
+    },
+    "notebooks/04_model_validation.ipynb": {
+      "sha256": "f633433086a0b291c6bc38daabf13dbe831b9e8e9571355db10d2c77ad1179be",
+      "bytes": 615828
+    },
+    "reproduction_wassall_2026/config.json": {
+      "sha256": "497cdace499a94d2cd66aa841c7b99f5aaa96d83a46dee44fde6f409a73421b3",
+      "bytes": 1471
+    },
+    "reproduction_wassall_2026/tables/article_comparison.csv": {
+      "sha256": "9116e5b6c127cf7de24c48a022b67b58c167efcfd5a99562cb16c5a5ebf2bb96",
+      "bytes": 347,
+      "rows": 4
+    },
+    "reproduction_wassall_2026/tables/article_table2_comparison.csv": {
+      "sha256": "3877baa1e11340dd391ce0bc76165303ff2d373747f63fb1e25bfed0feabe45d",
+      "bytes": 292,
+      "rows": 8
+    },
+    "reproduction_wassall_2026/tables/class_balance.csv": {
+      "sha256": "6a6dc14d670d17c4839c99a059ce872cafa123760529a86689194a9b43b6d260",
+      "bytes": 234,
+      "rows": 8
+    },
+    "reproduction_wassall_2026/tables/confusion_6_lso.csv": {
+      "sha256": "6c0f0a0a2c6aa4e0f0f7fd880f9893e4895885747684ec9ba63ced022fe6fd9d",
+      "bytes": 125,
+      "rows": 5
+    },
+    "reproduction_wassall_2026/tables/confusion_8_cv.csv": {
+      "sha256": "61fceecd962032a3f2eeb55ef179d24028ee783571547225b137c837f0b42370",
+      "bytes": 192,
+      "rows": 7
+    },
+    "reproduction_wassall_2026/tables/confusion_8_lso.csv": {
+      "sha256": "4a69e1463a884cabf2826295fd3edf110d2b15f8ea640201dcd9f8f8e3a633d2",
+      "bytes": 217,
+      "rows": 7
+    },
+    "reproduction_wassall_2026/tables/cycles.csv": {
+      "sha256": "5de10673d2c8f2694afd19fdddadc6000a526bb8b5ec302f3ec999d558e5c8f5",
+      "bytes": 557977,
+      "rows": 9781
+    },
+    "reproduction_wassall_2026/tables/excluded_cycles.csv": {
+      "sha256": "f2c41f012594b47864e6dcdabe21214b2c3ef1187ac37f44d9209654671ae755",
+      "bytes": 375,
+      "rows": 3
+    },
+    "reproduction_wassall_2026/tables/fold_membership.csv": {
+      "sha256": "b70cf91b5ea50604c1f743145e9144a08b0cedd62abac19d618542f3f962bab6",
+      "bytes": 1661,
+      "rows": 10
+    },
+    "reproduction_wassall_2026/tables/fold_results.csv": {
+      "sha256": "ce7610d706b326d22df4c82dd78d197852ab6f58366c209afe3c02733c0a018b",
+      "bytes": 4192,
+      "rows": 40
+    },
+    "reproduction_wassall_2026/tables/method_differences.csv": {
+      "sha256": "f5582dce38032ee6305d978ee0520c31512d8003eba5db5fac590e61e2fa199d",
+      "bytes": 631,
+      "rows": 4
+    },
+    "reproduction_wassall_2026/tables/predictions.csv": {
+      "sha256": "326b39773dfea3e3dddccaf1d075fd23c6cb566c0b5d7a6f4489c92ca30ce543",
+      "bytes": 2399301,
+      "rows": 48905
+    },
+    "reproduction_wassall_2026/tables/recall_6_lso.csv": {
+      "sha256": "40b7ae81bde151828ea59bcb752de823922e495bd304d603c54c187fec1ba555",
+      "bytes": 186,
+      "rows": 6
+    },
+    "reproduction_wassall_2026/tables/recall_8_cv.csv": {
+      "sha256": "87f2778d410d48c7a96832229051cfc62d4b0440c89bb618e639605286c8e392",
+      "bytes": 239,
+      "rows": 8
+    },
+    "reproduction_wassall_2026/tables/recall_8_lso.csv": {
+      "sha256": "59a63f58561c5586bcf0f5837f2be74bfa2502613edd3fbf9145b3c9159752fa",
+      "bytes": 241,
+      "rows": 8
+    },
+    "model_experiments/class_recall.csv": {
+      "sha256": "d63f7b0b0df12cdfe959780bd0f0e7d4bc2551705bbecdd179f809ff1ad47745",
+      "bytes": 3250,
+      "rows": 70
+    },
+    "model_experiments/confusion_matrices.csv": {
+      "sha256": "cdcb40e7c6d76c9db06cedfe099970c183838f8a9ee10582d6426cf2ea998500",
+      "bytes": 15124,
+      "rows": 548
+    },
+    "model_experiments/excluded_source_cycles.csv": {
+      "sha256": "9ccb0e45de71bccceb490ee99704032b40f1209804bb2ea14d7ac815e8e05970",
+      "bytes": 307,
+      "rows": 3
+    },
+    "model_experiments/excluded_stride_qc.csv": {
+      "sha256": "9b6ebb550e3d8f0d2be64e1b4079cfef6672ef6f00aca05b0223414975f18453",
+      "bytes": 4718,
+      "rows": 98
+    },
+    "model_experiments/experiment_config.json": {
+      "sha256": "5cbe4d1df9d00dfa97f099e5c45546a06d27079d4a2f2de82c8e8f8e765ec72f",
+      "bytes": 2236
+    },
+    "model_experiments/experiment_results.csv": {
+      "sha256": "06fc57abf9d07d8e2b1393ac8118277423362ab6fa6863f659a44807a80c057d",
+      "bytes": 2857,
+      "rows": 9
+    },
+    "model_experiments/fold_assignments.csv": {
+      "sha256": "b89e5412250f36df9b07c88232ade4b9ea267fa5e2b3087e80e35c917c2b47f2",
+      "bytes": 217874,
+      "rows": 9781
+    },
+    "model_experiments/fold_results.csv": {
+      "sha256": "d1d380e4f8b7501ebb55694b09b970ae66b5422b01331dd052818be41c3e4683",
+      "bytes": 7402,
+      "rows": 45
+    },
+    "model_experiments/participant_results.csv": {
+      "sha256": "dfa4a5d755b2d20d430c764488e6d90cac396098e4d1f42d4f770dab83ff37fe",
+      "bytes": 15491,
+      "rows": 180
+    },
+    "model_experiments/predictions.csv": {
+      "sha256": "c548b1af1eba9cabe1f180f9feeb2356f8a362104794cc3e2b77ce23dcdfe0ea",
+      "bytes": 3912371,
+      "rows": 85611
+    },
+    "model_experiments/ps_th_alignment.csv": {
+      "sha256": "c0240114a1e78a2b4d2f322f7bfa77922ef877b8338e1c17cd2ce18e97d8f464",
+      "bytes": 18855,
+      "rows": 637
+    },
+    "model_validation/class_recall.csv": {
+      "sha256": "4a46a9d3ac9d08ec45bb6498d07f948f1252ccf830251c8a65cbf4e1a6985868",
+      "bytes": 1957,
+      "rows": 32
+    },
+    "model_validation/confusion_matrices.csv": {
+      "sha256": "8f18916960aa8b62022869a422644b709f077df88b00210693c70d79a7e34743",
+      "bytes": 10853,
+      "rows": 256
+    },
+    "model_validation/excluded_files.csv": {
+      "sha256": "9247d148d9581266e2e45389ab76eb13eaaa50ced7eff4b074b478e3a7408ef3",
+      "bytes": 68,
+      "rows": 1
+    },
+    "model_validation/experiment_config.json": {
+      "sha256": "6783e6bd622672c92a869fa86d16dcab35f72cec1b72c320edb85012ee5c7fbb",
+      "bytes": 5065
+    },
+    "model_validation/experiment_results.csv": {
+      "sha256": "d85a393aa2291429f2335952169fe3f2e81aac6a3869b9fa282b940e27df5f7b",
+      "bytes": 1898,
+      "rows": 9
+    },
+    "model_validation/fold_assignments.csv": {
+      "sha256": "b89e5412250f36df9b07c88232ade4b9ea267fa5e2b3087e80e35c917c2b47f2",
+      "bytes": 217874,
+      "rows": 9781
+    },
+    "model_validation/fold_results.csv": {
+      "sha256": "a4d45cd6d7949307eabd8993c3b19a8f0090985909a5e76da1ea41a1598299e1",
+      "bytes": 7806,
+      "rows": 45
+    },
+    "model_validation/holdout_predictions.csv": {
+      "sha256": "9271b2baa6b6847288c4840b3ed537505147f20f26484581c76fb060c6b93c19",
+      "bytes": 56456,
+      "rows": 1418
+    },
+    "model_validation/inner_feature_selection.csv": {
+      "sha256": "0bd6e245fafd283e252853440fa5fc0e1f2c9ee715b34863385235e6d8be74ac",
+      "bytes": 447,
+      "rows": 4
+    },
+    "model_validation/inner_model_selection.csv": {
+      "sha256": "1e927fb62f88f07fcd40fec008ffefe7f653db6eb8c5f7a40a9364878e66df48",
+      "bytes": 543,
+      "rows": 6
+    },
+    "model_validation/participant_results.csv": {
+      "sha256": "21242f02733c50f11e09aacc6d3b9e95b7c2bbcc075166289d144df388f55c47",
+      "bytes": 17257,
+      "rows": 180
+    },
+    "model_validation/predictions.csv": {
+      "sha256": "e6bd6e194066dc15191f2423c21c8c8218553cb21b01eb6e7eb141f7300bb59f",
+      "bytes": 4904581,
+      "rows": 88029
+    },
+    "model_validation/terrain_predictor_final_metadata.json": {
+      "sha256": "2a3072495624942562c1eda795936501fc29975f43a0064c6be87d7ac583f854",
+      "bytes": 524
+    },
+    "model_validation/terrain_predictor_metadata.json": {
+      "sha256": "829d99900ee6f07fc5340b8f51184d990dd9d9a199b3bfffccfd134b92178f69",
+      "bytes": 4102
+    },
+    "model_validation/terrain_predictor.joblib": {
+      "sha256": "d93664d235deb1e7a0a4879d560fad1cde2c9f9cba29daabd9097258cc3a09c1",
+      "bytes": 5600383
+    },
+    "model_validation/terrain_predictor_final.joblib": {
+      "sha256": "6623ade03a1a69fc2cc3b5ec795238d013383771eee7d18ae91988db04b973b9",
+      "bytes": 6521531
+    }
+  }
+}

@@ -1,198 +1,92 @@
 # Assistive Gait Research
 
-[![CI](https://github.com/debikde/python-programming/actions/workflows/ci.yml/badge.svg)](https://github.com/debikde/python-programming/actions/workflows/ci.yml)
+Проект изучает распознавание условий ходьбы по данным инерциальных датчиков NTNU. Один объект для модели — цикл шага. Классы заданы числовыми кодами `Terrain`; названия кодов 8 и 9 остаются спорными. Модель служит для учебного исследования и демонстрации лабораторной №10.
 
-Исследовательский проект для анализа двигательной активности пользователей
-протезов нижних конечностей по данным носимых инерциальных датчиков (IMU).
-Будущая задача ML — классификация условий ходьбы.
-Планируемый источник: **IMU data from lower-limb prosthetic users traversing
-real-world terrain** (NTNU), [DOI 10.18710/U8RGDL](https://doi.org/10.18710/U8RGDL).
-Это исследовательский прототип, а не клиническая система диагностики.
+Исходные CSV и результаты находятся рядом с репозиторием в `../research-publication-data/`. Исходные файлы не изменяются и не входят в Git. Описание набора и замеченные проблемы разметки — в [документе о данных](docs/dataset.md).
 
-## Текущий этап: ЛР1, базовый и «Базовый+»
+## Установка
 
-Реализованы устанавливаемый пакет `research_graph`, CLI `rg`, конфигурация,
-логирование, изолированные тесты, строгая типизация, pre-commit и CI.
-Название Python-дистрибутива — `assistive-gait-research`; адрес существующего
-GitHub-репозитория — `debikde/python-programming`. Переименование удалённого
-репозитория для работы пакета не требуется.
-
-Будущие модули пока содержат только docstrings. Данные не загружены,
-модели не обучены, вычислительные эксперименты не проводились.
-API, frontend и научный сайт пока не реализованы.
-Бейдж отражает удалённый workflow; текущие локальные изменения ещё не опубликованы.
-
-## Окружение и установка
-
-Требуются Git, uv и **Python 3.12** (версия указана в `.python-version`).
-Стек выполнения: Pydantic, pydantic-settings, Typer.
-Инструменты разработки: Ruff, mypy, pytest, pytest-cov, pre-commit,
-pre-commit-hooks. ML- и веб-зависимостей нет.
-
-Установите uv по [официальной инструкции](https://docs.astral.sh/uv/getting-started/installation/)
-и убедитесь, что каталог с `uv` доступен в `PATH`:
+Нужны Python 3.12 и [uv](https://docs.astral.sh/uv/getting-started/installation/). Из корня проекта:
 
 ```powershell
-uv --version
-uv python install 3.12
+uv sync --locked --all-groups
 ```
 
-В текущей локальной папке проекта:
+Если PowerShell не находит `uv`, проверьте его установку командой `python -m pip show uv` и добавьте папку с `uv.exe` в `PATH`.
+
+## Исследование
+
+Запускайте ноутбуки по порядку в окружении проекта:
+
+1. [01 — EDA](notebooks/01_ntnu_eda_simple.ipynb): состав файлов, качество данных и распределение классов.
+2. [02 — воспроизведение Wassall et al. (2026)](notebooks/02_reproduce_wassall_2026.ipynb): признаки и сравнение CV, LSO, LOPO.
+3. [03 — эксперименты](notebooks/03_model_experiments.ipynb): очистка циклов, длина представления и каналы датчиков.
+4. [04 — проверка модели](notebooks/04_model_validation.ipynb): нормализация, сравнение алгоритмов и независимая оценка.
+
+Папка данных: `../research-publication-data/data/raw/ntnu/`. Ноутбуки сохраняют таблицы и рисунки в `../research-publication-data/artifacts/reports/`. Функции фильтрации и расчёта признаков находятся в `src/research_graph/pipelines/`, пути — в `src/research_graph/paths.py`. Разделение по участникам и параметры экспериментов видны в самих ноутбуках.
+
+Краткие итоги и ограничения модели собраны в [отчёте лабораторной №10](docs/lab10_report.md). На четырёх отложенных участниках macro-F1 выбранной модели составил 0,299. Рабочий артефакт, обученный на всех 20 участниках, не является независимой оценкой.
+
+## API и интерфейс
+
+Лабораторный пример с ипотекой адаптирован к циклам шага NTNU. Сервис использует Random Forest без каденса, с 140 признаками. Рабочая модель, обученная на 20 участниках, включена в Python-пакет и загружается при старте API. Исследовательские копии артефактов лежат в `../research-publication-data/artifacts/reports/model_validation/`. Повторно подготовить их можно командой:
 
 ```powershell
-uv sync --locked
+uv run --locked --all-groups python scripts/prepare_lab10_artifacts.py
 ```
 
-`uv sync` также поддерживается. Для воспроизводимой установки используйте
-`--locked`: несовпадение `pyproject.toml` и `uv.lock` станет ошибкой.
-Первичная установка требует интернета; сами тесты работают без сети.
-После будущей публикации можно будет клонировать репозиторий:
+Запуск API:
 
 ```powershell
-git clone https://github.com/debikde/python-programming.git
-cd python-programming
-uv sync --locked
+uv run --locked --all-groups python -m uvicorn research_graph.api.main:app --host 127.0.0.1 --port 8000
 ```
 
-## Конфигурация
-
-Настройки читаются из `RG_*` и необязательного `.env` в текущей рабочей папке.
-Переменные окружения имеют приоритет над `.env`, затем используются значения
-по умолчанию. Отсутствие `.env` и токена не мешает запуску.
-По желанию создайте локальный файл: `Copy-Item .env.example .env` (PowerShell)
-или `cp .env.example .env` (Linux/macOS). `.env` исключён из Git.
-
-| Переменная | По умолчанию | Назначение и ограничения |
-| --- | --- | --- |
-| `RG_GITHUB_TOKEN` | пусто / `None` | Необязательный токен будущей интеграции; выводится только признак наличия |
-| `RG_DATA_DIR` | `data` | Каталог данных; относительный путь считается от рабочей папки |
-| `RG_LOG_LEVEL` | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`, `NOTSET`; регистр не важен |
-| `RG_REQUEST_TIMEOUT` | `10.0` | Конечное число секунд от 0.1 до 300 включительно |
-| `RG_MAX_CONCURRENCY` | `4` | Целое число от 1 до 64 включительно |
-
-Загрузка `Settings` не создаёт каталоги. `check-config` вызывает
-`ensure_data_dir()`: создаёт недостающие родительские каталоги, сохраняет
-существующее содержимое и сообщает об ошибке, если путь занят файлом
-или недоступен для записи. `get_settings()` кэширует настройки в процессе;
-после изменения окружения в интерактивной сессии вызовите
-`get_settings.cache_clear()`.
-
-## CLI
+В другом терминале:
 
 ```powershell
-uv run rg --help
-uv run rg version
-uv run rg check-config
+cd frontend
+npm ci
+npm run dev
 ```
 
-`version` выводит `0.1.0`. При настройках по умолчанию `check-config` выводит:
+Откройте `http://127.0.0.1:5173`: рабочая модель уже готова. Выберите PS CSV из папки NTNU и явно укажите сторону протеза либо загрузите CSV с готовыми признаками без выбора стороны. Также доступен ручной ввод признаков. Ответ содержит исходные признаки цикла, класс и вероятности. Скачиваемый CSV сохраняет все столбцы подготовленного файла; для PS CSV он содержит рассчитанные признаки каждого цикла, а не отдельные отсчёты датчика. При наличии меток `Terrain` сервис показывает метрики; ROC-AUC рассчитывается только при наличии всех классов. Загрузка другого зарегистрированного `.joblib` необязательна и меняет модель только для запросов текущей вкладки. После перезапуска API дополнительную модель нужно загрузить снова; рабочая доступна автоматически.
 
-```text
-data_dir=data
-log_level=INFO
-request_timeout=10.0
-max_concurrency=4
-github_token_present=false
-```
+Маршруты: `POST /upload-model`, `POST /predict`, `POST /predict-from-csv`, `GET /model-info`. Примеры запросов, ручная проверка и промпты разработки интерфейса приведены в [отчёте](docs/lab10_report.md); интерактивная схема доступна по `http://127.0.0.1:8000/docs`. Список доверенных контрольных сумм — в `src/research_graph/api/trusted_models.json`. Переобученный файл нужно проверять перед добавлением в этот список.
 
-При заданном токене последняя строка содержит `true`; значение токена
-не выводится. Неверная конфигурация или ошибка создания каталога даёт код
-завершения 2 и краткое сообщение в stderr без значений настроек.
-Логи идут в stderr в формате `время уровень имя_логгера: сообщение`.
-Повторная настройка заменяет обработчики; шум сторонних библиотек ограничен.
-Команд анализа данных на этапе ЛР1 нет.
-
-## Проверки качества
+## Проверки
 
 ```powershell
-uv run ruff check .
-uv run ruff format --check .
-uv run mypy
-uv run pytest
-uv run pre-commit run --all-files
+uv run --locked --all-groups ruff check .
+uv run --locked --all-groups ruff format --check .
+uv run --locked --all-groups mypy
+uv run --locked --all-groups pytest
+cd frontend
+npm run lint
+npm run test
+npm run build
 ```
 
-mypy работает в строгом режиме для `src` и `tests`. pytest использует
-`--strict-markers`, branch coverage и порог 70%. Тесты изолируют `RG_*`, `.env`,
-кэш настроек и логирование; используют временные каталоги и не требуют
-реальных данных, токенов или интернета.
+Проверки запускаются в GitHub Actions через `.github/workflows/ci.yml`. `pytest` измеряет покрытие ветвей пакета `research_graph` через `pytest-cov` и требует не меньше 70%. Обычные push и pull request используют GitHub-hosted runner. CI проверяет Vue и сохраняет wheel Python-пакета, собранный frontend и отчёт о покрытии как артефакты. Git-репозиторий связан с [debikde/python-programming](https://github.com/debikde/python-programming), но локальные изменения не отправляются автоматически.
 
-Хуки выполняют Ruff, mypy, проверку YAML, пробелов, окончаний строк,
-конфликтов слияния и размера файлов. Через `uv run --locked` они используют
-то же окружение и версии, что основной проект. После добавления новых файлов
-в Git выполните pre-commit снова: `--all-files` проверяет отслеживаемые файлы.
-Для автоматического запуска при локальном коммите: `uv run pre-commit install`.
+### Ручная демонстрация на Windows runner
 
-GitHub Actions запускает проверки на push и pull request с Python 3.12
-и `uv sync --locked --all-groups`. Подход к установке описан в
-[документации uv для GitHub Actions](https://docs.astral.sh/uv/guides/integration/github/).
-Результаты локальной проверки — в [отчёте ЛР1](docs/lab1_report.md).
+Репозиторий публичный. Задание `Windows runner demonstration` в текущем workflow запускается только вручную; обычные проверки pull request остаются на GitHub-hosted runner. Для self-hosted runner нужна отдельная Windows-машина или чистая виртуальная машина с доступом к GitHub. Не используйте для этого основной компьютер с личными файлами и токенами: другие workflow публичного репозитория тоже могут направить задания на зарегистрированный runner.
 
-## Структура
+После появления workflow в основной ветке GitHub:
 
-```text
-.
-├── src/research_graph/
-│   ├── __init__.py
-│   ├── cli.py
-│   ├── config.py
-│   ├── logging_setup.py
-│   ├── sources/{__init__.py,ntnu_loader.py}
-│   ├── models/{__init__.py,schemas.py}
-│   ├── pipelines/
-│   │   ├── __init__.py
-│   │   ├── validation.py
-│   │   ├── preprocessing.py
-│   │   ├── features.py
-│   │   ├── training.py
-│   │   └── evaluation.py
-│   ├── storage/{__init__.py,artifacts.py}
-│   └── api/{__init__.py,main.py,routes.py,inference.py}
-├── frontend/README.md
-├── website/{README.md,docs/index.md}
-├── notebooks/README.md
-├── data/{raw,processed}/.gitkeep
-├── artifacts/{models,reports}/.gitkeep
-├── tests/
-│   ├── fixtures/.gitkeep
-│   ├── conftest.py
-│   ├── test_config.py
-│   ├── test_cli.py
-│   └── test_logging.py
-├── docs/{dataset.md,research_plan.md,lab1_report.md}
-├── scripts/check_repository.py
-├── .github/workflows/ci.yml
-├── .env.example
-├── .gitattributes
-├── .gitignore
-├── .pre-commit-config.yaml
-├── .python-version
-├── pyproject.toml
-├── uv.lock
-├── LICENSE
-├── CONTENT_LICENSE.md
-└── README.md
-```
+1. На выделенной Windows-машине получите ветку `lab10`: `git clone --branch lab10 https://github.com/debikde/python-programming.git`, затем перейдите в `python-programming`. Выполните `powershell -ExecutionPolicy Bypass -File scripts/prepare_windows_runner.ps1`. Скрипт скачает версию runner `2.338.2` в `C:\actions-runner`, сверит SHA-256 с официальным релизом и распакует файлы. Токен в скрипте не хранится.
+2. Откройте **Settings → Actions → Runners → New self-hosted runner** в репозитории и получите новый регистрационный токен. Он действует один час. Не используйте токен, уже вставленный в переписку, и не сохраняйте новый токен в репозитории. В PowerShell на той же машине выполните:
 
-`models/` предназначен для схем данных, а обученные модели будут храниться
-в `artifacts/models/`. Все файлы в `sources`, `models`, `pipelines`, `storage`
-и `api` — заготовки будущих этапов. Данные и артефакты исключены из Git;
-сохраняются только маркеры каталогов. `tests/fixtures/` зарезервирован для
-небольших тестовых примеров, которые появятся при работе с данными.
+   ```powershell
+   cd C:\actions-runner
+   $runnerToken = Read-Host 'Новый временный токен GitHub runner'
+   .\config.cmd --url https://github.com/debikde/python-programming --token $runnerToken --labels gait-lab --name gait-lab-windows --unattended
+   Remove-Variable runnerToken
+   .\run.cmd
+   ```
 
-## Будущие этапы
+3. Когда runner показывает `Listening for Jobs`, откройте **Actions → CI → Run workflow** и выберите ветку `lab10`. Задание проверит Python, покрытие, frontend и соберёт wheel и статические файлы Vue. Их можно скачать из артефакта `lab10-windows-demo` вместе с `coverage.xml`.
 
-Подключение NTNU → EDA → подготовка сигналов и признаков → сравнение минимум
-двух моделей → сохранение модели → FastAPI (`/upload-model`, `/predict`,
-`/predict-from-csv`) → frontend → научный сайт на MkDocs → итоговый CI в SourceCraft.
-Локальные и Colab-ноутбуки появятся на этапе исследований.
-Подробности: [план](docs/research_plan.md) и [описание датасета](docs/dataset.md).
+Сервер и автоматическая публикация не нужны для этой демонстрации. Исходные CSV остаются вне Git. Проверки используют небольшие тестовые данные и включённый в пакет обученный артефакт; на runner не нужно копировать исследовательскую папку. Показ работы с настоящей моделью выполняется локально по разделу «API и интерфейс». Команда `run.cmd` должна оставаться запущенной, пока нужны задания; после демонстрации runner можно остановить.
 
-## Состояние GitHub
-
-Локальный `origin` связан с `https://github.com/debikde/python-programming.git`.
-Текущая работа не отправляется на GitHub. Тег `lab1` создаётся только после
-отдельной проверки и согласования. Перед будущей публикацией нужно проверить
-историю и основную ветку удалённого репозитория, согласовать их с локальной
-историей, затем отдельно проверить первый запуск Actions и бейдж.
-Следующая лабораторная не входит в текущий этап.
+Python-тесты находятся в двух файлах: `tests/test_api.py` проверяет загрузку модели и предсказания, `tests/test_research.py` — импорт NTNU, обработку сигналов и CLI. Тесты интерфейса находятся в `frontend/src/api.test.ts`. Исследовательские результаты сверяются по сохранённым таблицам и выполненным ноутбукам.
