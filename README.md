@@ -66,6 +66,6 @@ npm run test
 npm run build
 ```
 
-CI настроен в `.sourcecraft/ci.yaml` и `.github/workflows/ci.yml`. Промпты для отчёта по лабораторной сохранены в [отдельном файле](docs/lab10_ai_prompts.md). Git-репозиторий связан с [debikde/python-programming](https://github.com/debikde/python-programming), но локальные изменения не отправляются автоматически.
+Проверки запускаются в GitHub Actions через `.github/workflows/ci.yml`. `pytest` измеряет покрытие ветвей пакета `research_graph` через `pytest-cov` и требует не меньше 70%. CI также проверяет Vue и сохраняет собранный frontend как артефакт; автоматического развёртывания пока нет. Промпты для отчёта по лабораторной сохранены в [отдельном файле](docs/lab10_ai_prompts.md). Git-репозиторий связан с [debikde/python-programming](https://github.com/debikde/python-programming), но локальные изменения не отправляются автоматически.
 
-Тесты сведены к двум файлам: `tests/test_api.py` проверяет загрузку модели и предсказания, `frontend/src/api.test.ts` — запросы интерфейса. Исследовательские результаты сверяются по сохранённым таблицам и выполненным ноутбукам.
+Python-тесты находятся в двух файлах: `tests/test_api.py` проверяет загрузку модели и предсказания, `tests/test_research.py` — импорт NTNU, обработку сигналов и CLI. Тесты интерфейса находятся в `frontend/src/api.test.ts`. Исследовательские результаты сверяются по сохранённым таблицам и выполненным ноутбукам.
